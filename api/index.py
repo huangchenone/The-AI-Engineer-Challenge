@@ -26,15 +26,19 @@ def root():
 
 @app.post("/api/chat")
 def chat(request: ChatRequest):
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+    subscription_key = os.getenv("ANTHROPIC_SUBSCRIPTION_KEY")
+    if not subscription_key:
+        raise HTTPException(status_code=500, detail="ANTHROPIC_SUBSCRIPTION_KEY not configured")
 
     try:
-        client = Anthropic(api_key=api_key)
+        client = Anthropic(
+            api_key="unused",  # auth handled by the Azure APIM gateway
+            base_url="https://lgts1tetamapi01.azure-api.net/claude/anthropic",
+            default_query={"subscription-key": subscription_key},
+        )
         user_message = request.message
         response = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-sonnet-4-6",
             max_tokens=1024,
             system="You are a supportive mental coach.",
             messages=[
